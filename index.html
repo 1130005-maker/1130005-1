@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>東中學生圖像創作小助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .feature-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .hidden-section {
+            display: none;
+        }
+        .preview-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 2px dashed #d1d5db;
+        }
+        .generated-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            border: 2px solid #e5e7eb;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #game-canvas, #snake-game-canvas, #survivor-game-canvas {
+            background: #0a0a2a;
+        }
+        .upgrade-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .upgrade-card:hover {
+            transform: scale(1.05);
+            border-color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">東中學生圖像創作小助手</h1>
+            <p class="text-md text-gray-600 mt-2">一個專為東山國中學生設計的AI圖像生成輔助工具</p>
+        </header>
+
+        <!-- Main Menu Grid -->
+        <div id="main-menu" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Card 1 -->
+            <div onclick="showSection('section1')" class="feature-card bg-teal-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">角色姿態場景變換</h2>
+                <p>上傳角色圖，輸入新場景或動作。</p>
+            </div>
+            <!-- Card 2 -->
+            <div onclick="showSection('section2')" class="feature-card bg-sky-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">圖像局部修訂</h2>
+                <p>上傳圖片，用文字下達編輯指令。</p>
+            </div>
+            <!-- Card 3 -->
+            <div onclick="showSection('section3')" class="feature-card bg-violet-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">風格元素融合</h2>
+                <p>上傳內容圖與風格圖，創造新藝術。</p>
+            </div>
+            <!-- Card 4 -->
+            <div onclick="showSection('section4')" class="feature-card bg-rose-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">智慧模板排版</h2>
+                <p>選擇模板，加入照片與文字生成圖。</p>
+            </div>
+            <!-- Card 5 -->
+            <div onclick="showSection('section5')" class="feature-card bg-amber-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">作業草稿優化</h2>
+                <p>拍下草稿，讓AI提供圖文建議。</p>
+            </div>
+            <!-- Card 6 -->
+            <div onclick="showSection('section6')" class="feature-card bg-lime-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">個性化貼圖生成</h2>
+                <p>上傳角色圖，生成一系列專屬貼圖。</p>
+            </div>
+             <!-- Card 7 - Shooter Game -->
+            <div onclick="showSection('section7')" class="feature-card bg-indigo-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">AI 太空射擊</h2>
+                <p>來玩個經典的太空射擊遊戲吧！</p>
+            </div>
+             <!-- Card 8 - Snake Game -->
+            <div onclick="showSection('section8')" class="feature-card bg-emerald-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">懷舊貪吃蛇</h2>
+                <p>控制方向鍵，挑戰你能得幾分！</p>
+            </div>
+             <!-- Card 9 - Survivor Game -->
+            <div onclick="showSection('section9')" class="feature-card bg-orange-500 text-white p-6 rounded-lg shadow-md cursor-pointer">
+                <h2 class="text-2xl font-bold mb-2">AI 倖存者</h2>
+                <p>敵人來襲！看看你能存活多久？</p>
+            </div>
+        </div>
+
+        <!-- Sections for each feature -->
+        <div id="feature-sections" class="hidden-section">
+            <button onclick="showMenu()" class="mb-6 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition">返回主選單</button>
+            
+            <div id="generation-output" class="hidden bg-white p-8 rounded-xl shadow-lg mb-6">
+                 <h2 class="text-2xl font-bold mb-4 text-gray-800">AI 生成結果</h2>
+                 <div id="loader-container" class="text-center hidden">
+                     <div class="loader"></div>
+                     <p class="text-lg text-gray-600">圖片生成中，請稍候...</p>
+                 </div>
+                 <div id="result-container">
+                    <img id="result-image" class="generated-img hidden" src="" alt="Generated Image">
+                    <p id="error-message" class="text-red-500"></p>
+                    <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+                        <h3 class="font-bold">本次使用的 AI 提示詞：</h3>
+                        <p id="result-prompt" class="text-sm text-gray-800 whitespace-pre-wrap font-mono"></p>
+                    </div>
+                 </div>
+            </div>
+            
+            <!-- Section 1: 角色姿態場景變換 -->
+            <div id="section1" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-teal-600">角色姿態場景變換</h2>
+                <p class="text-gray-600 mb-6">同學們上傳一張主要的角色圖片，然後輸入新的場景或動作描述（例如「在圖書館看書」）。AI 將以此為基礎，生成一張保持了原角色外觀、髮型、服飾等特徵的新圖像。</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700">1. 上傳角色圖片</label>
+                        <input id="s1-file" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" onchange="previewImage(this, 's1-preview')">
+                        <img id="s1-preview" class="mt-2 preview-img hidden" src="" alt="圖片預覽">
+                    </div>
+                    <div>
+                        <label for="s1-text" class="block text-lg font-medium text-gray-700">2. 輸入新的場景或動作</label>
+                        <input type="text" id="s1-text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500" placeholder="例如：在沙灘上堆沙堡">
+                    </div>
+                    <button onclick="generateImage('s1')" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+
+            <!-- Section 2: 圖像局部修訂 -->
+            <div id="section2" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-sky-600">圖像局部修訂</h2>
+                <p class="text-gray-600 mb-6">同學們上傳任何一張圖片，並用文字下達編輯指令，例如「把背景換成星空」、「給貓咪戴上一頂帽子」或「移除路人」。AI 會理解指令並對圖像進行局部或整體的修改。</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700">1. 上傳要修改的圖片</label>
+                        <input id="s2-file" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100" onchange="previewImage(this, 's2-preview')">
+                        <img id="s2-preview" class="mt-2 preview-img hidden" src="" alt="圖片預覽">
+                    </div>
+                    <div>
+                        <label for="s2-text" class="block text-lg font-medium text-gray-700">2. 輸入編輯指令</label>
+                        <input type="text" id="s2-text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500" placeholder="例如：把背景換成夜晚的星空">
+                    </div>
+                    <button onclick="generateImage('s2')" class="w-full bg-sky-500 text-white py-2 px-4 rounded-lg hover:bg-sky-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+            
+            <!-- Section 3: 風格元素融合 -->
+            <div id="section3" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-violet-600">風格元素融合</h2>
+                <p class="text-gray-600 mb-6">同學們上傳兩張圖片，一張作為內容/主體（例如：城市照片），另一張作為風格/元素（例如：梵谷的畫作）。AI 會將前者的內容與後者的藝術風格相結合，生成一張「梵谷風格的城市夜景圖」。</p>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-lg font-medium text-gray-700">1. 上傳內容/主體圖片</label>
+                            <input id="s3-file1" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" onchange="previewImage(this, 's3-preview1')">
+                            <img id="s3-preview1" class="mt-2 preview-img hidden" src="" alt="圖片預覽1">
+                        </div>
+                        <div>
+                            <label class="block text-lg font-medium text-gray-700">2. 上傳風格/元素圖片</label>
+                            <input id="s3-file2" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" onchange="previewImage(this, 's3-preview2')">
+                            <img id="s3-preview2" class="mt-2 preview-img hidden" src="" alt="圖片預覽2">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="s3-text" class="block text-lg font-medium text-gray-700">3. 輸入融合指令 (選填)</label>
+                        <input type="text" id="s3-text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500" placeholder="例如：將第一張圖的城市景觀與第二張圖的梵谷風格融合">
+                    </div>
+                    <button onclick="generateImage('s3')" class="w-full bg-violet-500 text-white py-2 px-4 rounded-lg hover:bg-violet-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+
+            <!-- Section 4: 智慧模板排版 -->
+            <div id="section4" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-rose-600">智慧模板排版</h2>
+                <p class="text-gray-600 mb-6">學生們選擇一個內建模板或上傳自訂的模板背景，再上傳一張主要圖片，並輸入模板上需要客製化的文字。AI 會自動將照片和文字完美地排版到模板中。</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="s4-template-type" class="block text-lg font-medium text-gray-700">1. 選擇模板類型</label>
+                        <select id="s4-template-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500" onchange="toggleCustomTemplate(this.value)">
+                            <option>比賽獎狀</option>
+                            <option>學生證</option>
+                            <option>活動海報</option>
+                            <option value="custom">自訂模板</option>
+                        </select>
+                    </div>
+                    <div id="s4-custom-template-div" class="hidden">
+                        <label class="block text-lg font-medium text-gray-700">2. 上傳自訂模板背景</label>
+                        <input id="s4-file-custom" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" onchange="previewImage(this, 's4-preview-custom')">
+                        <img id="s4-preview-custom" class="mt-2 preview-img hidden" src="" alt="自訂模板預覽">
+                    </div>
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700">3. 上傳主要圖片 (如得獎者照片)</label>
+                        <input id="s4-file-main" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" onchange="previewImage(this, 's4-preview-main')">
+                        <img id="s4-preview-main" class="mt-2 preview-img hidden" src="" alt="主要圖片預覽">
+                    </div>
+                    <div>
+                        <label for="s4-text" class="block text-lg font-medium text-gray-700">4. 輸入客製化文字 (一行一個項目)</label>
+                        <textarea id="s4-text" rows="4" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500" placeholder="例如：&#10;姓名:陳一豐&#10;獎項:AI創意比賽第一名&#10;日期:20250928"></textarea>
+                    </div>
+                    <button onclick="generateImage('s4')" class="w-full bg-rose-500 text-white py-2 px-4 rounded-lg hover:bg-rose-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+
+             <!-- Section 5: 作業草稿優化 -->
+            <div id="section5" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-amber-600">作業草稿優化</h2>
+                <p class="text-gray-600 mb-6">拍下問題或草稿，讓 AI 提供圖文並茂的解答或創作建議。學生可以拍下作業上的數學題、物理示意圖或一篇手寫的作文草稿並上傳，然後提出問題。</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700">1. 上傳問題或草稿圖片</label>
+                        <input id="s5-file" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100" onchange="previewImage(this, 's5-preview')">
+                        <img id="s5-preview" class="mt-2 preview-img hidden" src="" alt="圖片預覽">
+                    </div>
+                    <div>
+                        <label for="s5-text" class="block text-lg font-medium text-gray-700">2. 輸入你的請求</label>
+                        <input type="text" id="s5-text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" placeholder="例如：請圖解這道題的解法 或 幫我把這個故事畫成四格漫畫">
+                    </div>
+                    <button onclick="generateImage('s5')" class="w-full bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+
+            <!-- Section 6: 個性化貼圖生成 -->
+            <div id="section6" class="hidden-section bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-lime-600">個性化貼圖生成</h2>
+                <p class="text-gray-600 mb-6">上傳一張主要角色圖片（或用文字描述），並選擇情緒、動作與風格。AI 將為您生成一系列風格一致的可愛貼圖。</p>
+                 <div class="space-y-4">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700">1. 角色來源 (二選一)</label>
+                        <div class="mt-2 space-y-2">
+                             <div>
+                                <label class="block text-md font-medium text-gray-700">A. 上傳角色圖片 (優先使用)</label>
+                                <input id="s6-file" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-lime-50 file:text-lime-700 hover:file:bg-lime-100" onchange="previewImage(this, 's6-preview')">
+                                <img id="s6-preview" class="mt-2 preview-img hidden" src="" alt="圖片預覽">
+                            </div>
+                            <div>
+                                <label for="s6-text" class="block text-md font-medium text-gray-700">B. 或用文字描述角色</label>
+                                <input type="text" id="s6-text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-lime-500 focus:border-lime-500" placeholder="例如：一個戴著紅色帽子的棕色短髮女孩">
+                            </div>
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="s6-keyword" class="block text-lg font-medium text-gray-700">2. 選擇情緒或動作</label>
+                            <select id="s6-keyword" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-lime-500 focus:border-lime-500">
+                                <option>開心大笑</option>
+                                <option>驚訝</option>
+                                <option>哭泣</option>
+                                <option>生氣</option>
+                                <option>OK</option>
+                                <option>加油</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label for="s6-style" class="block text-lg font-medium text-gray-700">3. 選擇貼圖風格</label>
+                            <select id="s6-style" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-lime-500 focus:border-lime-500">
+                                <option value="">維持原圖風格</option>
+                                <option value="，採用動漫風格">動漫風格</option>
+                                <option value="，採用迪士尼3D風格">迪士尼3D風格</option>
+                                <option value="，採用像素藝術風格">像素藝術風格</option>
+                                <option value="，採用手繪水彩風格">手繪水彩風格</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="generateImage('s6')" class="w-full bg-lime-500 text-white py-2 px-4 rounded-lg hover:bg-lime-600 transition text-lg">生成圖片</button>
+                </div>
+            </div>
+            
+            <div id="section7" class="hidden-section bg-white p-8 rounded-xl shadow-lg text-center">
+                <h2 class="text-2xl font-bold mb-1 text-indigo-600">AI 太空射擊遊戲</h2>
+                <p class="text-gray-600 mb-6">按住滑鼠來連續射擊！</p>
+                <div id="game-container" class="relative mx-auto bg-gray-900 rounded-lg overflow-hidden" style="width: 600px; height: 400px; max-width: 100%;">
+                    <canvas id="game-canvas"></canvas>
+                    <div id="game-ui" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center pointer-events-none">
+                        <div class="absolute top-2 left-4 text-white font-bold text-xl pointer-events-auto flex items-center space-x-2">
+                            <span>HP:</span><div class="w-24 h-5 bg-gray-700 rounded-full border-2 border-white overflow-hidden"><div id="hp-fill" class="h-full bg-green-500 rounded-full" style="width: 100%;"></div></div>
+                        </div>
+                        <div id="score-display" class="absolute top-2 right-4 text-white font-bold text-xl pointer-events-auto">分數: 0</div>
+                        <div id="start-screen" class="text-white text-center pointer-events-auto">
+                            <h3 class="text-3xl font-bold">準備好了嗎？</h3>
+                            <button id="start-game-button" class="mt-4 bg-indigo-500 text-white py-3 px-6 rounded-lg hover:bg-indigo-600 transition text-lg font-bold">開始遊戲</button>
+                        </div>
+                        <div id="game-over-screen" class="hidden text-white text-center bg-black bg-opacity-70 p-8 rounded-lg pointer-events-auto">
+                            <h3 class="text-4xl font-bold text-red-500">遊戲結束</h3><p id="final-score" class="text-2xl mt-2"></p>
+                            <button id="restart-game-button" class="mt-4 bg-indigo-500 text-white py-3 px-6 rounded-lg hover:bg-indigo-600 transition text-lg font-bold">重新開始</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section8" class="hidden-section bg-white p-8 rounded-xl shadow-lg text-center">
+                <h2 class="text-2xl font-bold mb-1 text-emerald-600">懷舊貪吃蛇</h2>
+                <p class="text-gray-600 mb-6">使用鍵盤的方向鍵控制蛇的移動，吃掉蘋果來得分！</p>
+                <div id="snake-game-container" class="relative mx-auto bg-gray-900 rounded-lg overflow-hidden" style="width: 400px; height: 400px; max-width: 100%;">
+                    <canvas id="snake-game-canvas"></canvas>
+                    <div id="snake-game-ui" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center pointer-events-none">
+                        <div id="snake-score-display" class="absolute top-2 right-4 text-white font-bold text-xl pointer-events-auto">分數: 0</div>
+                        <div id="snake-start-screen" class="text-white text-center pointer-events-auto">
+                            <h3 class="text-3xl font-bold">準備開始</h3>
+                            <button id="snake-start-game-button" class="mt-4 bg-emerald-500 text-white py-3 px-6 rounded-lg hover:bg-emerald-600 transition text-lg font-bold">開始遊戲</button>
+                        </div>
+                        <div id="snake-game-over-screen" class="hidden text-white text-center bg-black bg-opacity-70 p-8 rounded-lg pointer-events-auto">
+                            <h3 class="text-4xl font-bold text-red-500">遊戲結束</h3><p id="snake-final-score" class="text-2xl mt-2"></p>
+                            <button id="snake-restart-game-button" class="mt-4 bg-emerald-500 text-white py-3 px-6 rounded-lg hover:bg-emerald-600 transition text-lg font-bold">重新開始</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 9: Survivor Game -->
+            <div id="section9" class="hidden-section bg-white p-8 rounded-xl shadow-lg text-center">
+                <h2 class="text-2xl font-bold mb-1 text-orange-600">AI 倖存者</h2>
+                <p class="text-gray-600 mb-6">使用 W,A,S,D 或方向鍵移動，活下去！</p>
+                <div id="survivor-game-container" class="relative mx-auto bg-gray-800 rounded-lg overflow-hidden" style="width: 90vw; height: 80vh; max-width: 960px; max-height: 720px;">
+                    <canvas id="survivor-game-canvas"></canvas>
+                    <div id="survivor-game-ui" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center pointer-events-none">
+                        <!-- Top UI -->
+                        <div class="absolute top-0 left-0 w-full p-2 flex justify-between items-center text-white font-bold text-lg pointer-events-auto">
+                            <div>等級: <span id="survivor-level">1</span></div>
+                            <div class="flex-grow mx-4">
+                                <div class="w-full bg-gray-600 rounded-full h-4 border-2 border-gray-400">
+                                    <div id="xp-bar-fill" class="bg-yellow-400 h-full rounded-full" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div>時間: <span id="survivor-timer">00:00</span></div>
+                                <button id="fullscreen-button" class="ml-4 p-1 rounded hover:bg-gray-600" title="全螢幕模式">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Start Screen -->
+                        <div id="survivor-start-screen" class="text-white text-center pointer-events-auto">
+                            <h3 class="text-3xl font-bold">倖存者挑戰</h3>
+                            <button id="survivor-start-button" class="mt-4 bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition text-lg font-bold">開始挑戰</button>
+                        </div>
+
+                        <!-- Level Up Modal -->
+                        <div id="level-up-modal" class="hidden absolute w-full h-full bg-black bg-opacity-70 flex justify-center items-center pointer-events-auto">
+                            <div class="bg-gray-800 text-white p-6 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2 text-center">
+                                <h3 class="text-3xl font-bold mb-4 text-yellow-400">等級提升！</h3>
+                                <p class="mb-6">選擇一項能力來強化自己：</p>
+                                <div id="upgrade-options-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Upgrade options will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Game Over Screen -->
+                        <div id="survivor-game-over-screen" class="hidden text-white text-center bg-black bg-opacity-70 p-8 rounded-lg pointer-events-auto">
+                            <h3 class="text-4xl font-bold text-red-500">挑戰失敗</h3>
+                            <p id="survivor-final-time" class="text-2xl mt-2"></p>
+                            <button id="survivor-restart-button" class="mt-4 bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition text-lg font-bold">重新挑戰</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Global Control Variables ---
+        const mainMenu = document.getElementById('main-menu');
+        const featureSections = document.getElementById('feature-sections');
+        const allSections = featureSections.querySelectorAll('.hidden-section');
+        
+        // --- Image Gen Variables ---
+        const generationOutput = document.getElementById('generation-output');
+        const loaderContainer = document.getElementById('loader-container');
+        const resultContainer = document.getElementById('result-container');
+        const resultImage = document.getElementById('result-image');
+        const resultPrompt = document.getElementById('result-prompt');
+        const errorMessage = document.getElementById('error-message');
+        
+        // --- Shooter Game Variables ---
+        const shooterGameContainer = document.getElementById('game-container');
+        const shooterCanvas = document.getElementById('game-canvas');
+        const shooterCtx = shooterCanvas.getContext('2d');
+        const shooterScoreDisplay = document.getElementById('score-display');
+        const shooterStartScreen = document.getElementById('start-screen');
+        const shooterGameOverScreen = document.getElementById('game-over-screen');
+        const shooterFinalScore = document.getElementById('final-score');
+        const shooterStartGameButton = document.getElementById('start-game-button');
+        const shooterRestartGameButton = document.getElementById('restart-game-button');
+        const hpFill = document.getElementById('hp-fill');
+        let player, bullets, shooterEnemies, shooterScore, shooterGameOver, shooterAnimationFrameId, enemySpawnInterval, isShooting = false, shooterLastTime;
+
+        // --- Snake Game Variables ---
+        const snakeGameContainer = document.getElementById('snake-game-container');
+        const snakeCanvas = document.getElementById('snake-game-canvas');
+        const snakeCtx = snakeCanvas.getContext('2d');
+        const snakeScoreDisplay = document.getElementById('snake-score-display');
+        const snakeStartScreen = document.getElementById('snake-start-screen');
+        const snakeGameOverScreen = document.getElementById('snake-game-over-screen');
+        const snakeFinalScore = document.getElementById('snake-final-score');
+        const snakeStartGameButton = document.getElementById('snake-start-game-button');
+        const snakeRestartGameButton = document.getElementById('snake-restart-game-button');
+        let snake, foods, snakeScore, snakeGameOver, snakeGameLoopId, dx, dy, changingDirection;
+        const tileSize = 20;
+
+        // --- Survivor Game Variables ---
+        const survivorGameContainer = document.getElementById('survivor-game-container');
+        const survivorCanvas = document.getElementById('survivor-game-canvas');
+        const survivorCtx = survivorCanvas.getContext('2d');
+        const survivorStartScreen = document.getElementById('survivor-start-screen');
+        const survivorGameOverScreen = document.getElementById('survivor-game-over-screen');
+        const levelUpModal = document.getElementById('level-up-modal');
+        const upgradeOptionsContainer = document.getElementById('upgrade-options-container');
+        const survivorStartButton = document.getElementById('survivor-start-button');
+        const survivorRestartButton = document.getElementById('survivor-restart-button');
+        const levelUI = document.getElementById('survivor-level');
+        const timerUI = document.getElementById('survivor-timer');
+        const xpBarFill = document.getElementById('xp-bar-fill');
+        const finalTimeUI = document.getElementById('survivor-final-time');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        let survivorPlayer, survivorEnemies, projectiles, xpGems, keysPressed = {};
+        let survivorAnimationFrameId, lastTime, gameTime, spawnTimer, survivorGameOverFlag;
+
+        // --- All Game Logic ---
+        
+        // --- Shooter Game Functions ---
+        function initShooterGame() {
+            const containerRect = shooterGameContainer.getBoundingClientRect();
+            shooterCanvas.width = containerRect.width;
+            shooterCanvas.height = containerRect.height;
+            player = {
+                x: shooterCanvas.width / 2 - 20, y: shooterCanvas.height - 50, width: 40, height: 20,
+                hp: 3, maxHp: 3, color: '#00ffff',
+                fireRate: 200, // 5 shots per second
+                fireCooldown: 0,
+                draw() {
+                    shooterCtx.fillStyle = this.color; shooterCtx.beginPath();
+                    shooterCtx.moveTo(this.x, this.y + this.height); shooterCtx.lineTo(this.x + this.width / 2, this.y);
+                    shooterCtx.lineTo(this.x + this.width, this.y + this.height); shooterCtx.closePath(); shooterCtx.fill();
+                }
+            };
+            bullets = []; shooterEnemies = []; shooterScore = 0; shooterGameOver = false; shooterLastTime = 0;
+            shooterScoreDisplay.textContent = '分數: 0'; updateHpDisplay();
+            shooterStartScreen.classList.add('hidden'); shooterGameOverScreen.classList.add('hidden');
+            if (enemySpawnInterval) clearInterval(enemySpawnInterval);
+            enemySpawnInterval = setInterval(spawnShooterEnemy, 1000);
+            requestAnimationFrame(shooterGameLoop);
+        }
+        function spawnShooterEnemy() {
+            const size = Math.random() * 20 + 20; const x = Math.random() * (shooterCanvas.width - size);
+            const y = -size; const speed = Math.random() * 2 + 1;
+            shooterEnemies.push({ x, y, size, speed, color: `hsl(${Math.random() * 360}, 100%, 50%)` });
+        }
+        function shooterGameLoop(timestamp) {
+            if (shooterGameOver) {
+                clearInterval(enemySpawnInterval); shooterGameOverScreen.classList.remove('hidden');
+                shooterFinalScore.textContent = `最終分數: ${shooterScore}`; return;
+            };
+            if (!shooterLastTime) shooterLastTime = timestamp;
+            const deltaTime = timestamp - shooterLastTime;
+            shooterLastTime = timestamp;
+
+            shooterCtx.clearRect(0, 0, shooterCanvas.width, shooterCanvas.height); player.draw();
+            
+            if (player.fireCooldown > 0) player.fireCooldown -= deltaTime;
+            if (isShooting && player.fireCooldown <= 0) {
+                bullets.push({ x: player.x + player.width / 2 - 2.5, y: player.y, width: 5, height: 10 });
+                player.fireCooldown = player.fireRate;
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i]; b.y -= 10; shooterCtx.fillStyle = '#ff00ff';
+                shooterCtx.fillRect(b.x, b.y, b.width, b.height); if (b.y < 0) bullets.splice(i, 1);
+            }
+            for (let i = shooterEnemies.length - 1; i >= 0; i--) {
+                const e = shooterEnemies[i]; e.y += e.speed; shooterCtx.fillStyle = e.color;
+                shooterCtx.beginPath(); shooterCtx.arc(e.x + e.size / 2, e.y + e.size / 2, e.size / 2, 0, Math.PI * 2); shooterCtx.fill();
+                if (e.y > shooterCanvas.height) { shooterEnemies.splice(i, 1); }
+                if (e.x < player.x + player.width && e.x + e.size > player.x && e.y < player.y + player.height && e.y + e.size > player.y) {
+                    shooterEnemies.splice(i, 1); player.hp--; updateHpDisplay(); if (player.hp <= 0) { shooterGameOver = true; }
+                }
+            }
+            for (let i = shooterEnemies.length - 1; i >= 0; i--) {
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    const e = shooterEnemies[i]; const b = bullets[j];
+                    if (e && b && b.x < e.x + e.size && b.x + b.width > e.x && b.y < e.y + e.size && b.y + b.height > e.y) {
+                        shooterEnemies.splice(i, 1); bullets.splice(j, 1); shooterScore += 10; shooterScoreDisplay.textContent = `分數: ${shooterScore}`;
+                    }
+                }
+            }
+            shooterAnimationFrameId = requestAnimationFrame(shooterGameLoop);
+        }
+        shooterCanvas.addEventListener('mousemove', e => {
+            if (!player) return;
+            const rect = shooterCanvas.getBoundingClientRect(); player.x = e.clientX - rect.left - player.width / 2;
+            if (player.x < 0) player.x = 0; if (player.x > shooterCanvas.width - player.width) player.x = shooterCanvas.width - player.width;
+        });
+        shooterCanvas.addEventListener('mousedown', e => {
+            if (!shooterGameOver) { isShooting = true; }
+        });
+        shooterCanvas.addEventListener('mouseup', e => {
+            isShooting = false;
+        });
+        shooterCanvas.addEventListener('mouseleave', e => {
+            isShooting = false;
+        });
+        function updateHpDisplay() {
+            const hpPercentage = (player.hp / player.maxHp) * 100; hpFill.style.width = `${hpPercentage}%`;
+            if (hpPercentage < 35) { hpFill.classList.remove('bg-green-500', 'bg-yellow-500'); hpFill.classList.add('bg-red-600'); }
+            else if (hpPercentage < 70) { hpFill.classList.remove('bg-green-500', 'bg-red-600'); hpFill.classList.add('bg-yellow-500'); }
+            else { hpFill.classList.remove('bg-yellow-500', 'bg-red-600'); hpFill.classList.add('bg-green-500'); }
+        }
+        shooterStartGameButton.addEventListener('click', initShooterGame);
+        shooterRestartGameButton.addEventListener('click', initShooterGame);
+
+        // --- Snake Game Functions ---
+        function initSnakeGame() {
+            const containerRect = snakeGameContainer.getBoundingClientRect();
+            snakeCanvas.width = containerRect.width;
+            snakeCanvas.height = containerRect.height;
+            snakeGameOver = false; changingDirection = false; dx = tileSize; dy = 0; snakeScore = 0;
+            snake = [ {x: 100, y: 100}, {x: 80, y: 100}, {x: 60, y: 100} ];
+            snakeScoreDisplay.textContent = `分數: ${snakeScore}`;
+            snakeStartScreen.classList.add('hidden');
+            snakeGameOverScreen.classList.add('hidden');
+            foods = []; createFood(); createFood();
+            snakeGameLoop();
+        }
+        function snakeGameLoop() {
+            if (snakeGameOver) {
+                snakeGameOverScreen.classList.remove('hidden');
+                snakeFinalScore.textContent = `最終分數: ${snakeScore}`; return;
+            }
+            changingDirection = false;
+            snakeGameLoopId = setTimeout(function onTick() {
+                clearSnakeCanvas(); drawFoods(); moveSnake(); drawSnake(); snakeGameLoop();
+            }, 150);
+        }
+        function clearSnakeCanvas() {
+            snakeCtx.fillStyle = '#0a0a2a';
+            snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+        }
+        function drawSnake() {
+            snake.forEach(part => {
+                snakeCtx.fillStyle = 'lightgreen'; snakeCtx.strokestyle = 'darkgreen';
+                snakeCtx.fillRect(part.x, part.y, tileSize, tileSize);
+                snakeCtx.strokeRect(part.x, part.y, tileSize, tileSize);
+            });
+        }
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+            if (checkCollision()) { snakeGameOver = true; return; }
+            let foodEaten = false;
+            for (let i = foods.length - 1; i >= 0; i--) {
+                if (snake[0].x === foods[i].x && snake[0].y === foods[i].y) {
+                    foodEaten = true; snakeScore += 10;
+                    snakeScoreDisplay.textContent = `分數: ${snakeScore}`;
+                    foods.splice(i, 1); createFood(); break; 
+                }
+            }
+            if (!foodEaten) { snake.pop(); }
+        }
+        function checkCollision() {
+            for (let i = 4; i < snake.length; i++) {
+                if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+            }
+            const hitLeftWall = snake[0].x < 0; const hitRightWall = snake[0].x > snakeCanvas.width - tileSize;
+            const hitTopWall = snake[0].y < 0; const hitBottomWall = snake[0].y > snakeCanvas.height - tileSize;
+            return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+        }
+        function createFood() {
+            let newFood;
+            while (true) {
+                newFood = {
+                    x: Math.floor(Math.random() * ((snakeCanvas.width - tileSize) / tileSize)) * tileSize,
+                    y: Math.floor(Math.random() * ((snakeCanvas.height - tileSize) / tileSize)) * tileSize,
+                };
+                let onSnake = snake.some(part => part.x === newFood.x && part.y === newFood.y);
+                let onOtherFood = foods.some(f => f.x === newFood.x && f.y === newFood.y);
+                if (!onSnake && !onOtherFood) { break; }
+            }
+            foods.push(newFood);
+        }
+        function drawFoods() {
+            foods.forEach(food => {
+                snakeCtx.fillStyle = '#ff3333'; snakeCtx.strokeStyle = '#c00';
+                snakeCtx.beginPath();
+                snakeCtx.arc(food.x + tileSize / 2, food.y + tileSize / 2, tileSize / 2, 0, 2 * Math.PI);
+                snakeCtx.fill(); snakeCtx.stroke();
+                snakeCtx.fillStyle = '#654321';
+                snakeCtx.fillRect(food.x + tileSize / 2 - 2, food.y, 4, tileSize / 4);
+            });
+        }
+        function changeDirection(event) {
+            const LEFT_KEY = 37; const RIGHT_KEY = 39;
+            const UP_KEY = 38; const DOWN_KEY = 40;
+            if (changingDirection) return;
+            changingDirection = true;
+            const keyPressed = event.keyCode;
+            const goingUp = dy === -tileSize; const goingDown = dy === tileSize;
+            const goingRight = dx === tileSize; const goingLeft = dx === -tileSize;
+            if (keyPressed === LEFT_KEY && !goingRight) { dx = -tileSize; dy = 0; }
+            if (keyPressed === UP_KEY && !goingDown) { dx = 0; dy = -tileSize; }
+            if (keyPressed === RIGHT_KEY && !goingLeft) { dx = tileSize; dy = 0; }
+            if (keyPressed === DOWN_KEY && !goingUp) { dx = 0; dy = tileSize; }
+        }
+        snakeStartGameButton.addEventListener('click', initSnakeGame);
+        snakeRestartGameButton.addEventListener('click', initSnakeGame);
+        
+        // --- Survivor Game Functions ---
+        function resizeSurvivorCanvas() {
+            const containerRect = survivorGameContainer.getBoundingClientRect();
+            survivorCanvas.width = containerRect.width;
+            survivorCanvas.height = containerRect.height;
+        }
+
+        function initSurvivorGame() {
+            resizeSurvivorCanvas();
+            survivorPlayer = {
+                x: survivorCanvas.width / 2, y: survivorCanvas.height / 2, radius: 15, speed: 3,
+                hp: 100, maxHp: 100, xp: 0, level: 1, xpToNextLevel: 10,
+                color: 'cyan',
+                weapons: [
+                    { name: 'Energy Bolt', level: 1, damage: 10, speed: 5, cooldown: 1000, timer: 0, count: 1, pierce: 0, angle: 0.2 },
+                    { name: 'Guardian Aura', level: 0, damage: 5, radius: 50, angle: 0, orbRadius: 8, rotationSpeed: 0.03 },
+                    { name: 'Homing Missile', level: 0, damage: 20, speed: 4, cooldown: 3000, timer: 0 },
+                ],
+                availableEvolutions: { 'Energy Bolt': true }
+            };
+            survivorEnemies = []; projectiles = []; xpGems = [];
+            gameTime = 0; spawnTimer = 0; lastTime = 0; survivorGameOverFlag = false;
+            keysPressed = {};
+            survivorStartScreen.classList.add('hidden');
+            survivorGameOverScreen.classList.add('hidden');
+            levelUpModal.classList.add('hidden');
+            requestAnimationFrame(survivorGameLoop);
+        }
+        function survivorGameLoop(timestamp) {
+            if (survivorGameOverFlag) {
+                survivorGameOverScreen.classList.remove('hidden');
+                finalTimeUI.textContent = `你存活了: ${timerUI.textContent}`;
+                return;
+            }
+            if(!lastTime) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            updateSurvivorPlayer(deltaTime);
+            updateSurvivorEnemies(deltaTime);
+            updateProjectiles(deltaTime);
+            handleCollisions();
+            gameTime += deltaTime;
+            spawnTimer += deltaTime;
+            if(spawnTimer > 2000 - (gameTime / 1000 * 10)) {
+                spawnSurvivorEnemy();
+                spawnTimer = 0;
+            }
+            drawSurvivorGame();
+            survivorAnimationFrameId = requestAnimationFrame(survivorGameLoop);
+        }
+        function updateSurvivorPlayer(deltaTime) {
+            let moveX = 0; let moveY = 0;
+            if (keysPressed['ArrowUp'] || keysPressed['w']) moveY -= 1;
+            if (keysPressed['ArrowDown'] || keysPressed['s']) moveY += 1;
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) moveX -= 1;
+            if (keysPressed['ArrowRight'] || keysPressed['d']) moveX += 1;
+            if (moveX !== 0 || moveY !== 0) {
+                 const length = Math.sqrt(moveX * moveX + moveY * moveY);
+                 moveX /= length; moveY /= length;
+            }
+            survivorPlayer.x += moveX * survivorPlayer.speed;
+            survivorPlayer.y += moveY * survivorPlayer.speed;
+            if(survivorPlayer.x - survivorPlayer.radius < 0) survivorPlayer.x = survivorPlayer.radius;
+            if(survivorPlayer.x + survivorPlayer.radius > survivorCanvas.width) survivorPlayer.x = survivorCanvas.width - survivorPlayer.radius;
+            if(survivorPlayer.y - survivorPlayer.radius < 0) survivorPlayer.y = survivorPlayer.radius;
+            if(survivorPlayer.y + survivorPlayer.radius > survivorCanvas.height) survivorPlayer.y = survivorCanvas.height - survivorPlayer.radius;
+            
+            survivorPlayer.weapons.forEach(weapon => {
+                if (weapon.level > 0 && weapon.cooldown) {
+                    weapon.timer -= deltaTime;
+                    if (weapon.timer <= 0) {
+                        fireWeapon(weapon);
+                        weapon.timer = weapon.cooldown;
+                    }
+                }
+                if (weapon.name === 'Guardian Aura' && weapon.level > 0) {
+                    weapon.angle += weapon.rotationSpeed;
+                }
+            });
+        }
+
+        function findClosestEnemy(fromX, fromY, maxRange = Infinity) {
+            let closestEnemy = null; let minDistance = maxRange;
+            survivorEnemies.forEach(enemy => {
+                const distance = Math.hypot(enemy.x - fromX, enemy.y - fromY);
+                if (distance < minDistance) { minDistance = distance; closestEnemy = enemy; }
+            });
+            return closestEnemy;
+        }
+
+        function fireWeapon(weapon) {
+            const closestEnemy = findClosestEnemy(survivorPlayer.x, survivorPlayer.y);
+            if (!closestEnemy) return;
+            const angle = Math.atan2(closestEnemy.y - survivorPlayer.y, closestEnemy.x - survivorPlayer.x);
+            
+            switch(weapon.name) {
+                case 'Energy Bolt':
+                case 'Scatter Shot':
+                case 'Piercing Shot':
+                    for(let i=0; i<weapon.count; i++) {
+                        const newAngle = angle - (weapon.angle * (weapon.count-1)/2) + (i * weapon.angle);
+                         projectiles.push({
+                            x: survivorPlayer.x, y: survivorPlayer.y, radius: 5, color: 'yellow',
+                            vx: Math.cos(newAngle) * weapon.speed,
+                            vy: Math.sin(newAngle) * weapon.speed,
+                            damage: weapon.damage, pierce: weapon.pierce, lifetime: 1000,
+                        });
+                    }
+                    break;
+                case 'Homing Missile':
+                    projectiles.push({
+                        x: survivorPlayer.x, y: survivorPlayer.y, radius: 7, color: '#ff8c00',
+                        damage: weapon.damage, speed: weapon.speed, target: closestEnemy, lifetime: 3000, type: 'homing'
+                    });
+                    break;
+            }
+        }
+        function updateSurvivorEnemies(deltaTime) {
+            survivorEnemies.forEach((enemy, index) => {
+                const angle = Math.atan2(survivorPlayer.y - enemy.y, survivorPlayer.x - enemy.x);
+                enemy.x += Math.cos(angle) * enemy.speed;
+                enemy.y += Math.sin(angle) * enemy.speed;
+                if (enemy.hp <= 0) {
+                    xpGems.push({ x: enemy.x, y: enemy.y, radius: 5, value: 2 });
+                    survivorEnemies.splice(index, 1);
+                }
+            });
+        }
+        function updateProjectiles(deltaTime) {
+             projectiles.forEach((p, index) => {
+                p.lifetime -= deltaTime;
+                if (p.lifetime <= 0) {
+                    projectiles.splice(index, 1);
+                    return;
+                }
+
+                if (p.type === 'homing' && p.target && p.target.hp > 0) {
+                    const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+                    p.vx = Math.cos(angle) * p.speed;
+                    p.vy = Math.sin(angle) * p.speed;
+                }
+                
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > survivorCanvas.width || p.y < 0 || p.y > survivorCanvas.height) {
+                    projectiles.splice(index, 1);
+                }
+            });
+        }
+        function spawnSurvivorEnemy() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            if (side === 0) { x = -20; y = Math.random() * survivorCanvas.height; }
+            else if (side === 1) { x = survivorCanvas.width + 20; y = Math.random() * survivorCanvas.height; }
+            else if (side === 2) { y = -20; x = Math.random() * survivorCanvas.width; }
+            else { y = survivorCanvas.height + 20; x = Math.random() * survivorCanvas.width; }
+            const difficulty = Math.floor(gameTime / 20000);
+            survivorEnemies.push({
+                x, y, radius: 10 + Math.random() * 5, speed: 1 + Math.random() * 0.5 + (difficulty * 0.1),
+                hp: 10 + difficulty * 5, maxHp: 10 + difficulty * 5, damage: 5 + difficulty
+            });
+        }
+        function handleCollisions() {
+            for(let pIndex = projectiles.length - 1; pIndex >= 0; pIndex--) {
+                const p = projectiles[pIndex];
+                for(let eIndex = survivorEnemies.length - 1; eIndex >= 0; eIndex--) {
+                    const e = survivorEnemies[eIndex];
+                    if (e && p && Math.hypot(p.x - e.x, p.y - e.y) < p.radius + e.radius) {
+                        e.hp -= p.damage;
+                        if (p.pierce > 0) {
+                            p.pierce--;
+                        } else {
+                            projectiles.splice(pIndex, 1);
+                            break; 
+                        }
+                    }
+                }
+            }
+            for(let eIndex = survivorEnemies.length - 1; eIndex >= 0; eIndex--) {
+                const e = survivorEnemies[eIndex];
+                if (Math.hypot(survivorPlayer.x - e.x, survivorPlayer.y - e.y) < survivorPlayer.radius + e.radius) {
+                   survivorPlayer.hp -= e.damage;
+                   survivorEnemies.splice(eIndex, 1);
+                   if (survivorPlayer.hp <= 0) { survivorGameOverFlag = true; }
+                }
+            }
+            for(let index = xpGems.length - 1; index >= 0; index--) {
+                const gem = xpGems[index];
+                if (Math.hypot(survivorPlayer.x - gem.x, survivorPlayer.y - gem.y) < survivorPlayer.radius + gem.radius + 30) {
+                    survivorPlayer.xp += gem.value;
+                    xpGems.splice(index, 1);
+                    if (survivorPlayer.xp >= survivorPlayer.xpToNextLevel) { levelUp(); }
+                }
+            }
+            const aura = survivorPlayer.weapons.find(w => w.name === 'Guardian Aura');
+            if (aura && aura.level > 0) {
+                const shieldX = survivorPlayer.x + Math.cos(aura.angle) * aura.radius;
+                const shieldY = survivorPlayer.y + Math.sin(aura.angle) * aura.radius;
+                for(let eIndex = survivorEnemies.length - 1; eIndex >= 0; eIndex--) {
+                    const e = survivorEnemies[eIndex];
+                    if (Math.hypot(shieldX - e.x, shieldY - e.y) < aura.orbRadius + e.radius) {
+                        e.hp -= aura.damage;
+                    }
+                }
+            }
+        }
+        function levelUp() {
+            cancelAnimationFrame(survivorAnimationFrameId);
+            survivorPlayer.xp -= survivorPlayer.xpToNextLevel;
+            survivorPlayer.level++;
+            survivorPlayer.xpToNextLevel = Math.floor(survivorPlayer.xpToNextLevel * 1.5);
+            survivorPlayer.hp = Math.min(survivorPlayer.maxHp, survivorPlayer.hp + survivorPlayer.maxHp * 0.25);
+            levelUpModal.classList.remove('hidden');
+            showUpgradeOptions();
+        }
+        function showUpgradeOptions() {
+            let availableUpgrades = [];
+            const mainWeapon = survivorPlayer.weapons.find(w => w.name === 'Energy Bolt' || w.name === 'Scatter Shot' || w.name === 'Piercing Shot');
+
+            if (mainWeapon.level < 3 && survivorPlayer.availableEvolutions['Energy Bolt']) {
+                availableUpgrades.push({ name: "升級能量彈", description: `傷害 +5, 攻速 +5%`, apply: () => { mainWeapon.level++; mainWeapon.damage += 5; mainWeapon.cooldown *= 0.95; } });
+            } else if (mainWeapon.level >= 3 && survivorPlayer.availableEvolutions['Energy Bolt']) {
+                availableUpgrades.push({ name: "進化: 散射彈", description: "能量彈進化為一次發射2枚", apply: () => {
+                    const oldWeapon = survivorPlayer.weapons.findIndex(w => w.name === 'Energy Bolt');
+                    survivorPlayer.weapons[oldWeapon] = { name: 'Scatter Shot', level: 1, damage: 8, speed: 5, cooldown: 1100, timer: 0, count: 2, pierce: 0, angle: 0.3 };
+                    delete survivorPlayer.availableEvolutions['Energy Bolt'];
+                }});
+                availableUpgrades.push({ name: "進化: 穿甲彈", description: "能量彈可穿透1名敵人", apply: () => {
+                    const oldWeapon = survivorPlayer.weapons.findIndex(w => w.name === 'Energy Bolt');
+                    survivorPlayer.weapons[oldWeapon] = { name: 'Piercing Shot', level: 1, damage: 15, speed: 7, cooldown: 1200, timer: 0, count: 1, pierce: 1, angle: 0 };
+                     delete survivorPlayer.availableEvolutions['Energy Bolt'];
+                }});
+            }
+            if (mainWeapon.name === 'Scatter Shot') {
+                 availableUpgrades.push({ name: "強化散射彈", description: "投射物數量 +1", apply: () => { mainWeapon.count++; }});
+                 availableUpgrades.push({ name: "加速散射彈", description: "攻擊速度 +10%", apply: () => { mainWeapon.cooldown *= 0.9; }});
+            }
+            if (mainWeapon.name === 'Piercing Shot') {
+                 availableUpgrades.push({ name: "強化穿甲彈", description: "穿透數量 +1", apply: () => { mainWeapon.pierce++; }});
+                 availableUpgrades.push({ name: "增傷穿甲彈", description: "傷害 +10", apply: () => { mainWeapon.damage += 10; }});
+            }
+
+            const aura = survivorPlayer.weapons.find(w => w.name === 'Guardian Aura');
+            if (aura.level === 0) {
+                availableUpgrades.push({ name: "學習: 守護者光環", description: "獲得環繞光球，持續傷害敵人", apply: () => { aura.level = 1; } });
+            } else {
+                 availableUpgrades.push({ name: `強化光環傷害 (Lv.${aura.level})`, description: `光環傷害 +3`, apply: () => { aura.level++; aura.damage += 3; } });
+                 availableUpgrades.push({ name: `擴大光環範圍 (Lv.${aura.level})`, description: `旋轉半徑 +8`, apply: () => { aura.level++; aura.radius += 8; } });
+                 availableUpgrades.push({ name: `加速光環旋轉 (Lv.${aura.level})`, description: `旋轉速度 +15%`, apply: () => { aura.level++; aura.rotationSpeed *= 1.15; } });
+            }
+
+            const missile = survivorPlayer.weapons.find(w => w.name === 'Homing Missile');
+             if (missile.level === 0) {
+                availableUpgrades.push({ name: "學習: 追蹤飛彈", description: "自動發射追蹤敵人的飛彈", apply: () => { missile.level = 1; } });
+            } else {
+                 availableUpgrades.push({ name: "強化飛彈", description: "飛彈傷害 +10, 攻速 +10%", apply: () => { missile.damage += 10; missile.cooldown *= 0.9; } });
+            }
+
+            availableUpgrades.push({ name: "提升移動速度", description: "+0.5 移動速度", apply: () => survivorPlayer.speed += 0.5 });
+            availableUpgrades.push({ name: "增加最大血量", description: "+20 最大生命值", apply: () => { survivorPlayer.maxHp += 20; survivorPlayer.hp += 20; } });
+
+            const shuffled = availableUpgrades.sort(() => 0.5 - Math.random());
+            const selectedUpgrades = shuffled.slice(0, 3);
+            upgradeOptionsContainer.innerHTML = '';
+            selectedUpgrades.forEach(upgrade => {
+                const card = document.createElement('div');
+                card.className = "upgrade-card bg-gray-700 p-4 rounded-lg border-2 border-gray-600 cursor-pointer";
+                card.innerHTML = `<h4 class="text-xl font-bold text-yellow-400">${upgrade.name}</h4><p>${upgrade.description}</p>`;
+                card.onclick = () => {
+                    upgrade.apply();
+                    levelUpModal.classList.add('hidden');
+                    lastTime = 0; // Reset delta time calculation
+                    requestAnimationFrame(survivorGameLoop);
+                };
+                upgradeOptionsContainer.appendChild(card);
+            });
+        }
+        function drawSurvivorGame() {
+            survivorCtx.clearRect(0, 0, survivorCanvas.width, survivorCanvas.height);
+            
+            survivorCtx.beginPath();
+            survivorCtx.arc(survivorPlayer.x, survivorPlayer.y, survivorPlayer.radius, 0, Math.PI * 2);
+            survivorCtx.fillStyle = survivorPlayer.color;
+            survivorCtx.fill();
+
+            const aura = survivorPlayer.weapons.find(w => w.name === 'Guardian Aura');
+            if (aura && aura.level > 0) {
+                const shieldX = survivorPlayer.x + Math.cos(aura.angle) * aura.radius;
+                const shieldY = survivorPlayer.y + Math.sin(aura.angle) * aura.radius;
+                survivorCtx.beginPath();
+                survivorCtx.arc(shieldX, shieldY, aura.orbRadius, 0, Math.PI * 2);
+                survivorCtx.fillStyle = 'orange';
+                survivorCtx.fill();
+                survivorCtx.strokeStyle = 'yellow';
+                survivorCtx.stroke();
+            }
+
+            survivorCtx.fillStyle = 'red';
+            survivorCtx.fillRect(survivorPlayer.x - survivorPlayer.radius, survivorPlayer.y + survivorPlayer.radius + 5, survivorPlayer.radius * 2, 5);
+            survivorCtx.fillStyle = 'green';
+            survivorCtx.fillRect(survivorPlayer.x - survivorPlayer.radius, survivorPlayer.y + survivorPlayer.radius + 5, (survivorPlayer.hp / survivorPlayer.maxHp) * survivorPlayer.radius * 2, 5);
+            
+            survivorEnemies.forEach(e => {
+                survivorCtx.beginPath();
+                survivorCtx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                survivorCtx.fillStyle = 'red';
+                survivorCtx.fill();
+            });
+            projectiles.forEach(p => {
+                survivorCtx.beginPath();
+                survivorCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                survivorCtx.fillStyle = p.color;
+                survivorCtx.fill();
+            });
+            xpGems.forEach(gem => {
+                 survivorCtx.beginPath();
+                survivorCtx.arc(gem.x, gem.y, gem.radius, 0, Math.PI * 2);
+                survivorCtx.fillStyle = 'lime';
+                survivorCtx.fill();
+            });
+            levelUI.textContent = survivorPlayer.level;
+            xpBarFill.style.width = `${(survivorPlayer.xp / survivorPlayer.xpToNextLevel) * 100}%`;
+            const minutes = Math.floor(gameTime / 60000).toString().padStart(2, '0');
+            const seconds = Math.floor((gameTime % 60000) / 1000).toString().padStart(2, '0');
+            timerUI.textContent = `${minutes}:${seconds}`;
+        }
+        survivorStartButton.addEventListener('click', initSurvivorGame);
+        survivorRestartButton.addEventListener('click', initSurvivorGame);
+        fullscreenButton.addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                survivorGameContainer.requestFullscreen().catch(err => {
+                    console.error(`全螢幕模式失敗: ${err.message} (${err.name})`);
+                });
+            }
+        });
+
+        // --- Global Navigation and Control Functions ---
+        const snakeKeydownHandler = (e) => changeDirection(e);
+        const survivorKeydownHandler = (e) => { keysPressed[e.key] = true; };
+        const survivorKeyupHandler = (e) => { keysPressed[e.key] = false; };
+        
+        function showMenu() {
+            mainMenu.style.display = 'grid';
+            featureSections.style.display = 'none';
+            if (shooterAnimationFrameId) cancelAnimationFrame(shooterAnimationFrameId);
+            if (snakeGameLoopId) clearTimeout(snakeGameLoopId);
+            if (survivorAnimationFrameId) { cancelAnimationFrame(survivorAnimationFrameId); survivorGameOverFlag = true; }
+            document.removeEventListener('keydown', snakeKeydownHandler);
+            document.removeEventListener('keydown', survivorKeydownHandler);
+            document.removeEventListener('keyup', survivorKeyupHandler);
+            window.removeEventListener('resize', resizeSurvivorCanvas);
+        }
+
+        function showSection(sectionId) {
+            mainMenu.style.display = 'none';
+            featureSections.style.display = 'block';
+            generationOutput.style.display = 'none';
+            allSections.forEach(s => {
+                s.style.display = s.id === sectionId ? 'block' : 'none';
+            });
+            window.scrollTo(0, 0);
+            if (shooterAnimationFrameId) cancelAnimationFrame(shooterAnimationFrameId);
+            if (snakeGameLoopId) clearTimeout(snakeGameLoopId);
+            if (survivorAnimationFrameId) { cancelAnimationFrame(survivorAnimationFrameId); survivorGameOverFlag = true; }
+            document.removeEventListener('keydown', snakeKeydownHandler);
+            document.removeEventListener('keydown', survivorKeydownHandler);
+            document.removeEventListener('keyup', survivorKeyupHandler);
+            window.removeEventListener('resize', resizeSurvivorCanvas);
+            
+            if (sectionId === 'section7') {
+                shooterStartScreen.classList.remove('hidden');
+                shooterGameOverScreen.classList.add('hidden');
+            } else if (sectionId === 'section8') {
+                snakeStartScreen.classList.remove('hidden');
+                snakeGameOverScreen.classList.add('hidden');
+                document.addEventListener('keydown', snakeKeydownHandler);
+            } else if (sectionId === 'section9') {
+                survivorStartScreen.classList.remove('hidden');
+                survivorGameOverScreen.classList.add('hidden');
+                levelUpModal.classList.add('hidden');
+                document.addEventListener('keydown', survivorKeydownHandler);
+                document.addEventListener('keyup', survivorKeyupHandler);
+                window.addEventListener('resize', resizeSurvivorCanvas);
+                // Hide fullscreen button if not supported by the environment
+                if (!document.fullscreenEnabled) {
+                    fullscreenButton.style.display = 'none';
+                } else {
+                    fullscreenButton.style.display = 'block';
+                }
+            }
+        }
+        
+        // --- Image Generation and Helper Functions ---
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+        function toggleCustomTemplate(value) {
+            const customTemplateDiv = document.getElementById('s4-custom-template-div');
+            customTemplateDiv.style.display = value === 'custom' ? 'block' : 'none';
+        }
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+        async function generateImage(sectionPrefix) {
+            generationOutput.style.display = 'block';
+            loaderContainer.style.display = 'block';
+            resultContainer.style.display = 'none';
+            errorMessage.textContent = '';
+            resultImage.classList.add('hidden');
+            generationOutput.scrollIntoView({ behavior: 'smooth' });
+            let promptText = '';
+            let fileInputIds = [];
+
+            switch (sectionPrefix) {
+                case 's1':
+                    promptText = `請依據上傳的圖片，繪製一個風格與外觀一致的角色。新的情境是：「${document.getElementById('s1-text').value || "（未提供）"}」`;
+                    fileInputIds = ['s1-file'];
+                    break;
+                case 's2':
+                    promptText = `請對這張圖片進行修改，修改指令是：「${document.getElementById('s2-text').value || "（未提供）"}」`;
+                    fileInputIds = ['s2-file'];
+                    break;
+                case 's3':
+                    promptText = document.getElementById('s3-text').value || '將兩張圖片的特點自然地融合在一起。';
+                    fileInputIds = ['s3-file1', 's3-file2'];
+                    break;
+                case 's4':
+                    const templateType = document.getElementById('s4-template-type').value;
+                    const textContent = document.getElementById('s4-text').value;
+                    promptText = `請根據以下資訊製作一張圖片：\n模板類型：${templateType}\n文字內容：\n${textContent}\n請將主要圖片適當地放入模板中。`;
+                    fileInputIds.push('s4-file-main');
+                    if (templateType === 'custom') {
+                        promptText += '\n請使用上傳的第二張圖片作為模板背景。';
+                        fileInputIds.push('s4-file-custom');
+                    }
+                    break;
+                case 's5':
+                    promptText = document.getElementById('s5-text').value || "（未提供請求）";
+                    fileInputIds = ['s5-file'];
+                    break;
+                case 's6':
+                    const s6File = document.getElementById('s6-file').files[0];
+                    const s6Text = document.getElementById('s6-text').value;
+                    const s6Keyword = document.getElementById('s6-keyword').value;
+                    const s6Style = document.getElementById('s6-style').value;
+                    let roleSource = '';
+                    let finalInstruction = '';
+                    if (s6File) {
+                        roleSource = '請依據上傳的角色圖片，';
+                        finalInstruction = '請務必保持原角色的外觀、髮型、服飾等特徵一致。';
+                        fileInputIds = ['s6-file'];
+                    } else if (s6Text) {
+                        roleSource = `請依據以下描述：「${s6Text}」，`;
+                        finalInstruction = '直接輸出圖片，不要加上任何文字說明。';
+                    } else {
+                        roleSource = '請依據通用可愛角色，';
+                        finalInstruction = '直接輸出圖片，不要加上任何文字說明。';
+                    }
+                    promptText = `${roleSource}生成一張表情貼圖。貼圖的風格要簡潔${s6Style}，背景為透明 (去背)，適合在通訊軟體中使用。角色的情緒或動作是「${s6Keyword}」。\n${finalInstruction}`;
+                    break;
+            }
+
+            resultPrompt.textContent = promptText;
+            
+            // API call logic (omitted for brevity)
+        }
+    </script>
+</body>
+</html>
+
